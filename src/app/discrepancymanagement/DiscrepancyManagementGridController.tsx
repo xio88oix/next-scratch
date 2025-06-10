@@ -598,8 +598,19 @@ const cols = [
     type: "string",
     renderCell: (params) =>
       params.row,isGroup || !URLSearchParams.value ? "" : URLSearchParams.value,
-  }
+  },
+  {
+    field: "description",
+    headerName: "description",
+    flex: 1,
+    headerClassName: "col-header",
+    type: "string",
+    renderCell: (params) =>
+      params.row,isGroup || !URLSearchParams.value ? "" : URLSearchParams.value,
+  },
 ];
+ 
+
 
 return !loading ? (
     <Box className="simpleGrid">
