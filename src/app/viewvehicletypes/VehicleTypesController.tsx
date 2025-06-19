@@ -192,17 +192,17 @@ const isRowValid = (row) => {
 };
 
 const handleEditClick = (id: GridRowId) => () => {
+  const indexToFocus = cols.findIndex((c) => c.editable === true);
     setRowModesModel({
       ...rowModesModel,
-      [id]: { mode: GridRowModes.Edit, fieldToFocus: "shortDescription" },
+      [id]: { mode: GridRowModes.Edit, fieldToFocus: cols[indexToFocus].field },
     });
 };
 
 const handleCancelClick = (id: GridRowId) => () => {
-  const indexToFocus = cols.findIndex((c) => c.editable === true);
   setRowModesModel({
     ...rowModesModel, 
-    [id]: { mode: GridRowModes.Edit, fieldToFocus: cols[indexToFocus].field },
+    [id]: { mode: GridRowModes.View, ignoreModifications: true },
   });
   const editedRow = rows.find((row) => row.id === id);
   if (editedRow.isNew) {
@@ -245,6 +245,7 @@ const handleRowEditStop: GridEventListener<"rowEditStop"> = (
       let existingRow = rows.find((row) => row.id === updatedRow.id);
       if (existingRow < 0) {
         somethingChanged = true;
+        TextField
       } else {
         if (rows[existingRow][field] !== updatedRow[field]) {
           somethingChanged = true;
