@@ -37,3 +37,15 @@ export const useFetchDiscrepancyType = () =>
 
 export const useFetchDiscrepancyStatus = () =>
     useFetchData("/lookups.json?type=discrepancyStatus&activeOnly=true");
+
+export const useFetchPackageacknowledgement = (params) => {
+    const queryParams = new URLSearchParams();
+    queryParams.set("limit", params.limit);
+    queryParams.set("page", params.page);
+    queryParams.set("start", params.start);
+    queryParams.set("sort", params.sort ?? "");
+    queryParams.set("dir", params.dir ?? "");
+
+    const url = `/packageacknowledgement/queue.${params.type}?${queryParams.toString()}`;
+    return useFetchData(url, params);
+}
