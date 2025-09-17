@@ -62,6 +62,14 @@ import { QuickActionSelect } from "@/components/toolbar/QuickActionSelect";
 //import { ArrowRight, PrintOutlined } from "@mui/icons-material";
 
 export default function PackageacknowledgementController() {
+  const searchParams = useSearchParams();
+  const urlSon = searchParams.get("son");
+
+  const apiRef = useGridApiRef();
+  //Post Api's
+  const postApiMark = useApiUrl("/discrepancy/markReadyToReceive");
+  const postApiComment = useApiUrl("/discrepancy/addNewComment");
+
   const [rowModesModel, setRowModesModel] = useState<GridRowModesModel>({});
   const [rows, setRows] = useState([]);
 
@@ -80,13 +88,13 @@ export default function PackageacknowledgementController() {
   //const [groupBy, setGroupBy] = useState("");
   //const groupedRows = useGroupedRows(rows, groupBy); //apply grouping
 
-  const apiRef = useGridApiRef();
+
   //const today = new Date();
   //const defaultReceivingDate = new Date(today);
   //defaultReceivingDate.setDate(defaultReceivingDate.getDate() - 3);
-  const postApiMark = useApiUrl("/discrepancy/markReadyToReceive");
-  const postApiComment = useApiUrl("/discrepancy/addNewComment");
   //Lookup
+  const [discrepancyStatus, setDiscrepancyStatus] = useState([null]);
+  const [discrepancyType, setDiscrepancyType] = useState([null]);
 
   //Snackbar
   const [snackBarOpen, setSnackBarOpen] = useState(false);
@@ -116,7 +124,11 @@ export default function PackageacknowledgementController() {
 
   const defaultSearchParams = {
     type: "json",
-
+    son: urlSon || null,
+    acknowledgementDateFrom: null,
+    acknowledgementDateTo: null,
+    finalDestination: null,
+    offloadLocation: null,
     page: paginationModel.page + 1,
     start: 0,
     limit: paginationModel.pageSize,
@@ -150,31 +162,31 @@ export default function PackageacknowledgementController() {
   const handlePaginationChange = (pagination) => {
     console.log("pagination is now ", pagination);
     setPaginationModel(pagination);
-    setUserSearchParam({
-      ...userSearchParam,
-      limit: pagination.pageSize ?? 15,
-      page: pagination.page + 1,
-      start: pagination.page * pagination.pageSize,
-    });
+    // setUserSearchParam({
+    //   ...userSearchParam,
+    //   limit: pagination.pageSize ?? 15,
+    //   page: pagination.page + 1,
+    //   start: pagination.page * pagination.pageSize,
+    // });
   };
 
   const handleSortChange = (newSortModel) => {
     console.log("Sort Model is now ", newSortModel);
     setSortModel(newSortModel);
-    if (newSortModel.length > 0) {
-      setUserSearchParam({
-      ...userSearchParam,
-      sort: newSortModel[0].field,
-      dir: newSortModel[0].sort.toUpperCase(),
-    });
-  } else {
-    setSortModel([{ field: "startTimestamp", sort: "asc" }]);
-    setUserSearchParam({
-      ...userSearchParam,
-      sort: "ts",
-      dir: "DESC",
-    });
-  }
+  //   if (newSortModel.length > 0) {
+  //     setUserSearchParam({
+  //     ...userSearchParam,
+  //     sort: newSortModel[0].field,
+  //     dir: newSortModel[0].sort.toUpperCase(),
+  //   });
+  // } else {
+  //   setSortModel([{ field: "startTimestamp", sort: "asc" }]);
+  //   setUserSearchParam({
+  //     ...userSearchParam,
+  //     sort: "ts",
+  //     dir: "DESC",
+  //   });
+  // }
   };
 
   const handleSnackbarClose = (
@@ -192,8 +204,84 @@ export default function PackageacknowledgementController() {
 
   //Quick Actions
   const quickActions = [
-
-  ];
+    { label: "Acknowledge Delivery",
+      needsDialog: false,
+      dialogTitle: "Acknowledge Delivery",
+      dialogFieldLabel: "Comment",
+      dialogFieldMultiline: true,
+      onClick: async (rows) => {
+        const nonLiveRows = rows.filter((row) => row.receivedByCustomer);
+        if (nonLiveRows.length > 0) {
+          showWarningAlert(
+            "Invalid Package(s)",
+            "One or more packages selected have already been acknowledged."
+          );
+          return;
+        }
+        const ids = rows.map((row) => row.id);
+      const formBody = new URLSearchParams();
+      formBody.append("ids", ids.join(","));
+      await fetch("/packageacknowledgement/acknowledgeDelivery", {
+        method: "POST",
+        body: formBody,
+      });
+    },
+  },
+  {
+    label: "Print Acknowledgement",
+    needsDialog: false,
+    dialogTitle: "Print Acknowledgement",
+    dialogFieldLabel: "Comment",
+    dialogFieldMultiline: true,
+    onClick: async (rows) => {
+      const nonLiveRows = rows.filter((row) => row.receivedByCustomer);
+      if (nonLiveRows.length > 0) {
+        showWarningAlert(
+          "Invalid Package(s)",
+          "One or more packages selected have already been acknowledged."
+        );
+        return;
+      }
+      const ids = rows.map((row) => row.id);
+      const formBody = new URLSearchParams();
+      ids.forEach((id) => {
+        formBody.append("discrepancyId", id.toString());
+      })
+      formBody.append("comment", comment);
+      await fetch(postApiMark, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formBody.toString(),
+        credentials: "include",
+      });
+      apiRef.current.updateRows([]);
+      showSnackBar("Action completed successfully!", "success");
+    },
+  },
+  {
+    label: "Report Package Issue",
+    needsDialog: true,
+    dialogTitle: "Report Package Issue",
+    dialogFieldLabel: "Comment",
+    dialogFieldMultiline: true,
+    onClick: async (rows, comment) => {
+      const ids = rows.map((row) => row.id);
+      const formBody = new URLSearchParams();
+      ids.forEach((id) => {
+        formBody.append("discrepancyId", id.toString());
+      })
+      formBody.append("comment", comment);
+      await fetch(postApiComment, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formBody.toString(),
+        credentials: "include",
+      });
+      apiRef.current.updateRows([]);
+      showSnackBar("Action completed successfully!", "success");
+    },
+  },
+];
 
 function EditToolbar() {
   //AdvanceSearch 
@@ -214,11 +302,13 @@ function EditToolbar() {
       <MyDialog
         props={{
           title: "Advanced Search",
-          childred:: AdvancedSearchPackageacknowledgement({
+          childred: AdvancedSearchPackageacknowledgement({
+            discrepancyStatus: discrepancyStatus,
+            discrepancyType: discrepancyType,
             startSearch: advanceSearchStart,
             setUserSearchParam: setUserSearchParam,
             userSearchParam: userSearchParam,
-          })
+          }),
         }}
         open={advanceSearchOpen ?? false}
         advanceSearch={true}
@@ -229,16 +319,11 @@ function EditToolbar() {
         handleSave={() => {
           setAdvanceSearchStart(true);
         }}
-
       />
       <Button className="button-light" onClick={handleAdvanceSearchClear}>
         Clear Search
       </Button>
-      <GridToolbarFilterBButton
-        slotProps={{
-          button: { className: "button-light" },
-        }}
-        />
+
       <QuickActionSelect 
         apiRef={apiRef}
         actions={quickActions}
@@ -250,7 +335,38 @@ function EditToolbar() {
 }
 
 const cols: GridColDef[] = [
-  { field: "id", headerName: "ID", flex: 1, headerClassName: "col-header" },
+  { field: "id", headerName: "ID", flex: 1, headerClassName: "col-header", type: "string",
+    renderCell: (params) => params.row.isGroup || !params.value ? "" : params.value,
+    editable: true,
+   },
+  { field: "packageId", headerName: "SON", flex: 1, headerClassName: "col-header", type: "string",
+    renderCell: (params) => params.row.isGroup || !params.value ? "" : params.value,
+    editable: true,
+  },
+  { field: "cargoStatusDisplay", headerName: "Status", flex: 1, headerClassName: "col-header", type: "string",
+    renderCell: (params) => params.row.isGroup || !params.value ? "" : params.value,
+    editable: true,
+  },
+  { field: "missionOffloadName", headerName: "Mission Offload", flex: 1, headerClassName: "col-header", type: "string",
+    renderCell: (params) => params.row.isGroup || !params.value ? "" : params.value,
+    editable: true,
+  },
+  { field: "finalDestinationName", headerName: "Final Destination", flex: 1, headerClassName: "col-header", type: "string",
+    renderCell: (params) => params.row.isGroup || !params.value ? "" : params.value,
+    editable: true,
+  },
+  { field: "receivedDate", headerName: "Acknowledgement Date", flex: 1, headerClassName: "col-header", type: "Date",
+    minWidth:200,   
+    renderCell: (params) => params.row.isGroup || !params.value ? "" : dayjs(new Date(params.value)).formate("DD MMM YYYY HH:mm"),
+    valueGetter: (val) => {
+      return val.value ? new Date(val) : null;
+    },
+    valueFormatter: (val) => {
+      if (!val) return "";
+      return dayjs(new Date(val.value)).format("DD MMM YYYY HH:mm");
+    }
+    editable: true,
+  },
 ];
 
 
@@ -268,7 +384,7 @@ return loading ? (
         <WarningAlert
           open={warningAlertOpen}
           onClose={() => {
-            setAlertOpen(false);
+            setWarningAlertOpen(false);
           }}
           title={warningAlertMessage}
           message={warningAlertMessage}

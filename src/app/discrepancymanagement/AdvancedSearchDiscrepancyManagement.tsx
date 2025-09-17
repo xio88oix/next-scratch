@@ -22,9 +22,9 @@ export default function AdvancedSearchDiscrepancyManagement(params: {
             defaultDiscrepancyStatus.push(rg);
         });
     }
-    let defaultDiscrepancyType [];
-    if (params.userSearchParam?.discrepancyTypeength > 0) {
-        params.userSearchParam?.discrepancyTypep((r) => {
+    let defaultDiscrepancyType = [];
+    if (params.userSearchParam?.discrepancyType.length > 0) {
+        params.userSearchParam?.discrepancyType.map((r) => {
             const rg = params.discrepancyType.find((item) => item.id ===r);
             defaultDiscrepancyType.push(rg);
         });
@@ -33,25 +33,18 @@ export default function AdvancedSearchDiscrepancyManagement(params: {
     const [advancedSearchParams, setAdvancedSearchParams] = useState({
         discrepancyStatus: defaultDiscrepancyStatus ?? [],
         son: params.userSearchParam?.son ?? null,
-        dateIdentifiedStart: params.userSearchParam?.dateIdentifiedStart
-            ? dayjs(params.userSearchParam?.dateIdentifiedStart)
+        acknowledgementDateFrom: params.userSearchParam?.acknowledgementDateFrom
+            ? dayjs(params.userSearchParam?.acknowledgementDateFrom)
             : null,
-        dateIdentifiedEnd: params.userSearchParam?.dateIdentifiedEnd
-            ? dayjs(params.userSearchParam?.dateIdentifiedEnd)
-            : null,
-        dateResolveStart: params.userSearchParam?.dateResolveStart
-            ? dayjs(params.userSearchParam?.dateResolveStart)
-            : null,
-        dateResolveEnd: params.userSearchParam?.dateResolveEnd
-            ? dayjs(params.userSearchParam?.dateResolveEnd)
+        acknowledgementDateTo: params.userSearchParam?.acknowledgementDateTo
+            ? dayjs(params.userSearchParam?.acknowledgementDateTo)
             : null,
         
-        description: params.userSearchParam?.description ?? null,
-        comments: params.userSearchParam?.comments ?? null,
+        finalDestination: params.userSearchParam?.finalDestination ?? null,
+        offloadLocation: params.userSearchParam?.offloadLocation ?? null,
         trackingNumber: params.userSearchParam?.trackingNumber ?? null,
 
         discrepancyType: defaultDiscrepancyType ?? null,
-        discrepancyId: params.userSearchParam?.discrepancyId ?? null,
 
         group: params.userSearchParam?.group ?? null,
 
@@ -107,26 +100,16 @@ export default function AdvancedSearchDiscrepancyManagement(params: {
 
                 params.setUserSearchParam({
                     ...advancedSearchParams,
-                    dateIdentifiedStart: advancedSearchParams.dateIdentifiedStart
-                        ? dayjs(advancedSearchParams.dateIdentifiedStart).format(
+                    acknowledgementDateFrom: advancedSearchParams.acknowledgementDateFrom
+                        ? dayjs(advancedSearchParams.acknowledgementDateFrom).format(
                             "YYYY-MM-DDT00:00:00"
                         )
                     : null,
-                    dateIdentifiedEnd: advancedSearchParams.dateIdentifiedEnd
-                        ? dayjs(advancedSearchParams.dateIentifiedEnd).format(
+                    acknowledgementDateTo: advancedSearchParams.acknowledgementDateTo
+                        ? dayjs(advancedSearchParams.acknowledgementDateTo).format(
                             "YYYY-MM-DDT00:00:00"
                         )
                     : null,
-                    dateResolveStart: advancedSearchParams.dateResolveStart
-                        ? dayjs(advancedSearchParams.dateResolveStart).format(
-                            "YYYY-MM-DDT00:00:00"
-                        )
-                    : null,
-                    dateResolveEnd: advancedSearchParams.dateResolveEnd
-                        ? dayjs(advancedSearchParams.dateResolveEnd).format(
-                            "YYYY-MM-DDT00:00:00"
-                        )
-                    : null,     
                     discrepancyStatus: discrepancyStatusArray,
                     discrepancyType: discrepancyTypeArray,                                                       
                 });
@@ -145,8 +128,8 @@ export default function AdvancedSearchDiscrepancyManagement(params: {
                                         label={"Shipping Number"}
                                         variant="filled"
                                         slotprops={{ htmlInput: { maxLength: 128 } }}
-                                        onChange={handleChange("shippingnumber")}
-                                        value={advancedSearchParams.shippingnumber ?? ""}
+                                        onChange={handleChange("son")}
+                                        value={advancedSearchParams.son ?? ""}
                                         />
                                 </Grid2>
                                 <Grid2>
@@ -159,9 +142,9 @@ export default function AdvancedSearchDiscrepancyManagement(params: {
                                             <StyledTextField
                                                 {...params}
                                                 variant="filled"
-                                                label={"Status"}
+                                                label={"Package Status"}
                                                 className="section-usereit__field body1 text-onbackground"
-                                                helperText="Search for Status"
+                                                helperText="Search for Package Status"
                                                 />
                                         )}
                                         getOptionLabel={(option) => option?.shortDescription || ""}
@@ -177,44 +160,38 @@ export default function AdvancedSearchDiscrepancyManagement(params: {
                                 </Grid2>
                                 <Grid2>
                                     <MyDatePicker
-                                        label={"Date Identified From:"}
-                                        value={advancedSearchParams.dateIdentifiedStart}
-                                        onChange={handleChange("dateIdentifiedStart")}
-                                        maxDate={advancedSearchParams.dateIdentifiedEnd}
+                                        label={"Acknowledgement Date From:"}
+                                        value={advancedSearchParams.acknowledgementDateFrom}
+                                        onChange={handleChange("acknowledgementDateFrom")}
+                                        maxDate={advancedSearchParams.acknowledgementDateTo}
                                         />
                                 </Grid2>
                                 <Grid2>
                                     <MyDatePicker
-                                        label={"Date Identified To:"}
-                                        value={advancedSearchParams.dateIdentifiedEnd}
-                                        onChange={handleChange("dateIdentifiedEnd")}
-                                        minDate={advancedSearchParams.dateIdentifiedStart}
-                                        />
-                                </Grid2>
-                                <Grid2>
-                                    <MyDatePicker
-                                        label={"Date Resolved From:"}
-                                        value={advancedSearchParams.dateResolveStart}
-                                        onChange={handleChange("dateResolveStart")}
-                                        maxDate={advancedSearchParams.dateResolveEnd}
-                                        />
-                                </Grid2>
-                                <Grid2>
-                                    <MyDatePicker
-                                        label={"Date Resolved From:"}
-                                        value={advancedSearchParams.dateResolveEnd}
-                                        onChange={handleChange("dateResolveEnd")}
-                                        minDate={advancedSearchParams.dateResolveStart}
+                                        label={"Acknowledgement Date To:"}
+                                        value={advancedSearchParams.acknowledgementDateTo}
+                                        onChange={handleChange("acknowledgementDateTo")}
+                                        minDate={advancedSearchParams.acknowledgementDateFrom}
                                         />
                                 </Grid2>
                                 <Grid2>
                                     <CustomTextField
                                         fullWidth
-                                        label={"Description"}
+                                        label={"Mis Offload location"}
                                         variant="filled"
                                         slotprops={{ htmlInput: { maxLength: 128 }}}
-                                        onChange={handleChange("description")}
-                                        value={advancedSearchParams.description ?? ""}
+                                        onChange={handleChange("offloadLocation")}
+                                        value={advancedSearchParams.offloadLocation ?? ""}
+                                        />
+                                </Grid2>
+                                <Grid2>
+                                    <CustomTextField
+                                        fullWidth
+                                        label={"Final Destination"}
+                                        variant="filled"
+                                        slotprops={{ htmlInput: { maxLength: 128 }}}
+                                        onChange={handleChange("finalDestination")}
+                                        value={advancedSearchParams.finalDestination ?? ""}
                                         />
                                 </Grid2>
                                 <Grid2>
@@ -227,9 +204,9 @@ export default function AdvancedSearchDiscrepancyManagement(params: {
                                             <StyledTextField
                                                 {...params}
                                                 variant="filled"
-                                                label={"Type"}
+                                                label={"Acknowledgement Status"}
                                                 className="section-useredit__field body1 text-onbackground"
-                                                helperText="Search for Type"
+                                                helperText="Search for Acknowledgement Status"
                                                 />
                                         )}
                                         getOptionLabel={(option: any) =>
