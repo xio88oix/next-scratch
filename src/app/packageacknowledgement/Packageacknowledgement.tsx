@@ -16,7 +16,7 @@ declare module "@mui/x-data-grid" {
     }
 }
 
-export default function PackageacknowledgementGrid(props: {
+export default function Packageacknowledgement(props: {
     apiRef?: any;
     rowsData: any[];
     cols: any[];
